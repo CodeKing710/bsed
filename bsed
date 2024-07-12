@@ -4,11 +4,11 @@ shopt -q -s extglob
 # bsed's main code
 
 autoupdate="true"
-repo="$(find $HOME -type d -name "bsed" 2>/dev/null | grep repo)"
+repo="$(find "$HOME" -type d -name "bsed" 2>/dev/null | grep repo)"
 [[ ! -e "$HOME"/.bsed ]] && mkdir "$HOME/.bsed" && "$repo/install"
 
 # Check for unit test
-if [[ "$BSED_TST" == "true" ]]; then
+if [[ -n "$BSED_TST" ]]; then
 	# Load the lib from the repo and set prgroot to repo
 	echo -e "[BSED] UNIT TEST MODE! READING FROM REPO!"
 	source "$repo"/.bsed/.lib
