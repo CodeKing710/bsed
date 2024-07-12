@@ -1,0 +1,49 @@
+#!/bin/bash
+
+shopt -q -s extglob
+# bsed's main code
+
+autoupdate="true"
+repo="$(find $HOME -type d -name "bsed" 2>/dev/null | grep repo)"
+[[ ! -e "$HOME"/.bsed ]] && mkdir "$HOME/.bsed" && "$repo/install"
+
+# Check for unit test
+if [[ "$BSED_TST" == "true" ]]; then
+	# Load the lib from the repo and set prgroot to repo
+	echo -e "[BSED] UNIT TEST MODE! READING FROM REPO!"
+	source "$repo"/.bsed/.lib
+	prgroot="$repo/.bsed"
+elif [[ "$autoupdate" == "true" ]]; then
+	# Check for updates
+	if [[ -n "$(diff "$repo"/.bsed/.lib "$HOME"/.bsed/.lib)" || \
+				-n "$(diff "$repo"/.bsed/help "$HOME"/.bsed/help)" || \
+				-n "$(diff "$repo"/.bsed/version "$HOME"/.bsed/version)" || \
+				-n "$(diff "$repo"/bsed "$HOME"/bin/bsed)" ]]; then "$repo/install"; fi
+	
+	# Load lib
+	source "$HOME"/.bsed/.lib
+else
+	source "$HOME"/.bsed/.lib
+fi
+
+
+__bsed() {
+	if [[ -z "$1" ]]; then
+		__args
+	else
+		if [[ "$1" =~ "-" ]]; then
+			# Arg mode
+			__args "$@"
+		else
+			# Command mode
+			__cmds "$@"
+		fi
+	fi
+	# Process format
+	__proc
+}
+
+__bsed "$@"
+
+# Cleanup for accidental sourcing
+[[ "$$" -eq "$BASHPID" ]] && unset __bsed __args __cwd autoupdate repo prgroot __loadcfg __cfg error verbose log lists __cmds states __proc && shopt -q -u extglob

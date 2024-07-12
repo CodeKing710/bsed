@@ -1,0 +1,12 @@
+Usage: bsed [options] <format>
+
+Options:
+    -f, --format                    specify format explicitly
+
+    -C, --config <rule[=value]>     get/set settings
+
+    -V, --verbose                   set verbose output logging
+
+    -?, --help                      output usage information
+
+    -v, --version                   output version information

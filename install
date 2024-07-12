@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# bsed's installer
+install() {
+	local repo="$(find "$HOME" -type d -name bsed 2>/dev/null | grep repo)"
+	
+	# Preprocess
+	[[ ! -e "$HOME/.bsed" ]] && mkdir "$HOME/.bsed"
+
+	# Install
+	cp -f "$repo"/bsed "$HOME"/bin || return 1
+	cp -f "$repo"/.bsed/.lib "$HOME"/.bsed || return 1
+	cp -f "$repo"/.bsed/help "$HOME"/.bsed || return 1
+	cp -f "$repo"/.bsed/version "$HOME"/.bsed || return 1
+	# Uncomment if you desire configurables
+	#[[ ! -e "$HOME"/.bsed/.cfg ]] && { cp -f "$repo"/.bsed/.cfg "$HOME"/.bsed/.cfg || return 1; }
+
+	# Comment if you want quiet installation
+	echo "bsed installed!"
+}
+
+install "$@"
