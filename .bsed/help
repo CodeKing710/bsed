@@ -1,7 +1,7 @@
-Usage: bsed [options] <format>
+Usage: bsed [options]
 
 Options:
-    -f, --format                    specify format explicitly
+    -f, --format <format>           specify format explicitly
 
     -C, --config <rule[=value]>     get/set settings
 
