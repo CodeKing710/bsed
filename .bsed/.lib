@@ -114,19 +114,28 @@ __proc() {
 	# Process escaped characters
 	[[ "$built_regex" =~ '\' ]] && {
 		verbose "Escaping "'\'"* and "'\'"%...";
-		verbose "Unescaping regex quantifiers...";
 		escs=true;
 		built_regex="$(echo "$built_regex" | \
 			sed -e 's/\(\\\\\*\)/!/g' \
+					-e 's/\(\\\*\)/\&/g' \
 					-e 's/\(\\\\%\)/@/g' \
-					-e 's/\(\\\*\)/&/g' \
-					-e 's/\(\\\+\)/</g' \
-					-e 's/\(\\\?\)/>/g' \
-					-e 's/\(\+\)/\\+/g' \
-					-e 's/\(\?\)/\\?/g' \
-					-e 's/\(<\)/+/g' \
-					-e 's/\(>\)/?/g' \
+					-e 's/\(\\%\)/@/g' \
+					
 		)";
+		verbose "Current regex transformation: "$built_regex;
+	}
+
+	# Process regex quantifiers for use in regex
+	[[ "$built_regex" =~ (\+|\?) ]] && {
+		verbose "Unescaping regex quantifiers...";
+		built_regex="$(echo "$built_regex" | \
+			sed -e 's/\(\\+\)/\</g' \
+					-e 's/\(+\)/\\+/g' \
+					-e 's/\(<\)/+/g' \
+					-e 's/\(\\?\)/\>/g' \
+					-e 's/\(?\)/\\?/g' \
+					-e 's/\(>\)/?/g' \
+		)"
 		verbose "Current regex transformation: "$built_regex;
 	}
 
