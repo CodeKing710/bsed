@@ -2,7 +2,7 @@
 
 BSED is an expression builder for regular expressions based on the passed format. A format is just a fancy way of describing what you want the regular expression to target. Certain regex formats are hard to write or remember, and this is supposed to take that complexity out of regular expressions. Please note the output expression should be used in a command that supports regex! Generally using indirection will result in the regex being read improperly as any characters that match an escape sequence will get transformed. If you are to save it, try saving it to a variable from a subshell call to bsed without quoting the subshell expression. i.e. `myregex=$(bsed <format>)`. Also note that the surrounding commands for `sed` will still need input, this will just help organize what is an expression versus a command separator for `sed`.
 
-# Usage
+## Usage
 
 General usage of bsed is `bsed <format>`. You can use '\*' to grab a wildcard character, '\*\*' to grab any amount of characters, '%' to grab a single digit, '%%' to grab multiple digits, and use '\*%' to grab anything. Groupings within the format can be defined by '[' and ']' to signify a start/end to a group to grab separately from the rest of the expression format. ';' signifies space. It doesn't matter the amount, it just claims any amount of space
 
