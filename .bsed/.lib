@@ -184,6 +184,20 @@ __proc() {
 		verbose "Current regex transformation: "$built_regex;
 	}
 
+	# Run an output check to transform characters for use in a sed expression
+	[[ "${states[out]}" == 'b' ]] && {
+		verbose "Transforming characters for use in bash...";
+		built_regex="$(echo "$built_regex" | \
+			sed -e 's/\&/\\&/g' \
+					-e 's/\\+/+/g' \
+					-e 's/+/\\+/g' \
+					-e 's/?/\\?/g' \
+					-e 's/\\?/?/g' \
+					-e 's/\$/\\$/g' \
+					-e 's/\\\$/\\\\\\$/g' \
+			)"
+	}
+
 	# Echo out resulting regex
 	verbose "Built regex: "$built_regex;
 	echo "$built_regex"
