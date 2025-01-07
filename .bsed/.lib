@@ -11,8 +11,14 @@ declare -A lists
 declare -A states
 
 # Preset associative values
-states[cfg]="" # Any text within a bool state signifies true, less is better
-lists[cmds]="^(format|config|verbose|help|version)$"
+if [[ "${BASHVERSINFO[0]}" -ge 4 ]]; then
+	lists[cmds]="^(format|config|verbose|help|version)$"
+	states[cfg]="" # Any text within a bool state signifies true, less is better
+else
+	cmds="^(format|config|verbose|help|version)$"
+	format=""
+	out="nb"
+fi
 
 # Variables to be interpolated into the built regex
 xwildchar='[\^\.]\*'
@@ -20,24 +26,33 @@ xwilddigit='[[:digit:]]\*'
 xwhitespace='[[:space:]]\*'
 
 # Output functions
-error() { echo -e '\e[0;1;31m[ERROR]\e[0;0;0m '$1 >&2; }
-verbose() { [[ -n "$VERBOSE" ]] && echo -e '\e[0;1;35m[VERBOSE]\e[0;0;0m '$"$1"; }
-log() { echo -e '\e[0;1;32m[BSED]\e[0;0;0m '$1; }
+error() { printf '\e[0;1;31m[ERROR]\e[0;0;0m '"$1\n" >&2; }
+verbose() { [[ -n "$VERBOSE" ]] && printf '\e[0;1;35m[VERBOSE]\e[0;0;0m '$"$1\n"; }
+log() { printf '\e[0;1;32m[BSED]\e[0;0;0m '"$1\n"; }
 
 # Processing functions
 __args() {
 	# Process args
 	[[ -z "$1" ]] && cat "$prgroot"/help | head -1 && exit
+	1="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
 	while [[ -n "$1" ]]; do
 		case "${1}" in
 			-f | --format )
 				shift
 				[[ -z "$1" ]] && echo "No format specified" && exit
-				states[format]="${1}"
+				if [[ "${BASHVERSINFO[0]}" -ge 4 ]]; then
+					states[format]="${1}"
+				else
+					format="${1}"
+				fi
 				;;
 			-o | --output )
 				shift
-				[[ -z "$1" ]] && states[out]="nb" || states[out]="${1,,}";
+				if [[ "${BASHVERSINFO[0]}" -ge 4 ]]; then
+					[[ -z "$1" ]] && states[out]="nb" || states[out]="${1}";
+				else
+					[[ -z "$1" ]] && out="nb" || out="${1}";
+				fi
 				;;
 			--verbose | -V )
 				VERBOSE=true
@@ -51,7 +66,7 @@ __args() {
 				exit;;
 			* )
 				# Catch-all
-				if [[ "$1" =~ ${lists[cmds]} ]]; then
+				if [[ "$1" =~ $([[ "${BASHVERSINFO[0]}" -ge 4 ]] && echo ${lists[cmds]} || echo $cmds) ]]; then
 					__cmds "$1"
 					return 0
 				else
@@ -67,16 +82,25 @@ __args() {
 __cmds() {
 	# Process commands
 	[[ -z "$1" ]] && cat "$prgroot"/help | head -1 && exit
+	1="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
 	while [[ -n "$1" ]]; do
-		case "${1,,}" in
+		case "${1}" in
 			format )
 				shift
 				[[ -z "$1" ]] && echo "No format specified" && exit
-				states[format]="${1}"
+				if [[ "${BASHVERSINFO[0]}" -ge 4 ]]; then
+					states[format]="${1}"
+				else
+					format="${1}"
+				fi
 				;;
 			output )
 				shift
-				[[ -z "$1" ]] && states[out]="nb" || states[out]="${1,,}";
+				if [[ "${BASHVERSINFO[0]}" -ge 4 ]]; then
+					[[ -z "$1" ]] && states[out]="nb" || states[out]="${1}";
+				else
+					[[ -z "$1" ]] && out="nb" || out="${1}";
+				fi
 				;;
 			verbose )
 				shift
@@ -95,9 +119,9 @@ __cmds() {
 					__args "$1"
 					return 0
 				else
-					verbose "Grepped command: '$(echo "${lists[cmds]}" | sed -e 's/\^\|[\(]\|[\)]\|\$//g' -e 's/[\|]/\n/g' | grep "$1")'"
+					verbose "Grepped command: '$([[ "${BASHVERSINFO[0]}" -ge 4 ]] && { echo "${lists[cmds]}" | sed -e 's/\^\|[\(]\|[\)]\|\$//g' -e 's/[\|]/\n/g' | grep "$1"; } || { echo "$cmds" | sed -e 's/\^\|[\(]\|[\)]\|\$//g' -e 's/[\|]/\n/g' | grep "$1"; })'"
 					error "'$1' is not a command!"
-					error "Did you mean to use '$(echo "${lists[cmds]}" | sed -e 's/\^\|[\(]\|[\)]\|\$//g' -e 's/[\|]/\n/g' | grep "$1")'?"
+					error "Did you mean to use '$([[ "${BASHVERSINFO[0]}" -ge 4 ]] && { echo "${lists[cmds]}" | sed -e 's/\^\|[\(]\|[\)]\|\$//g' -e 's/[\|]/\n/g' | grep "$1"; } || { echo "$cmds" | sed -e 's/\^\|[\(]\|[\)]\|\$//g' -e 's/[\|]/\n/g' | grep "$1"; })'?"
 					exit
 				fi
 				;;
@@ -106,9 +130,9 @@ __cmds() {
 }
 
 __proc() {
-	[[ -z "$states[format]" ]] && error "No format specified!" && exit
+	[[ -z "$([[ "${BASHVERSINFO[0]}" -ge 4 ]] && echo "${states[format]}" || echo "$format")" ]] && error "No format specified!" && exit
 	# Process the format
-	local built_regex="${states[format]}"
+	local built_regex="$([[ "${BASHVERSINFO[0]}" -ge 4 ]] && echo "${states[format]}" || echo "$format")"
 	local escs='';
 	# '#' is used as a placeholder
 	# Process escaped characters
@@ -185,7 +209,7 @@ __proc() {
 	}
 
 	# Run an output check to transform characters for use in a sed expression
-	[[ "${states[out]}" == 'b' ]] && {
+	[[ "$([[ "${BASHVERSINFO[0]}" -ge 4 ]] && echo "${states[out]}" || echo "$out")" == 'b' ]] && {
 		verbose "Transforming characters for use in bash...";
 		built_regex="$(echo "$built_regex" | \
 			sed -e 's/\&/\\&/g' \
