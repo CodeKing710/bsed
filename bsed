@@ -46,4 +46,6 @@ __bsed() {
 __bsed "$@"
 
 # Cleanup for accidental sourcing
-[[ "$$" -eq "$BASHPID" ]] && unset __bsed __args __cwd autoupdate repo prgroot __loadcfg __cfg error verbose log lists __cmds states __proc && shopt -q -u extglob
+[[ "$$" -eq "$BASHPID" ]] && { unset __bsed __args __cwd autoupdate repo prgroot __loadcfg __cfg error verbose log lists __cmds states __proc; shopt -q -u extglob; }
+
+exit 0
