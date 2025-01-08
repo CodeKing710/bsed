@@ -6,12 +6,11 @@
 __cwd="$(pwd)"
 prgroot="$HOME/.bsed"
 
-# Declare associative arrays
-declare -A lists
-declare -A states
-
 # Preset associative values
 if [[ "${BASHVERSINFO[0]}" -ge 4 ]]; then
+	# Declare associative arrays
+	declare -A lists
+	declare -A states
 	lists[cmds]="^(format|config|verbose|help|version)$"
 	states[cfg]="" # Any text within a bool state signifies true, less is better
 else
@@ -34,7 +33,7 @@ log() { printf '\e[0;1;32m[BSED]\e[0;0;0m '"$1\n"; }
 __args() {
 	# Process args
 	[[ -z "$1" ]] && cat "$prgroot"/help | head -1 && exit
-	1="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+	1="$(echo "$1" | tr '[:upper:]' '[:lower:]')" 2>/dev/null
 	while [[ -n "$1" ]]; do
 		case "${1}" in
 			-f | --format )
@@ -82,7 +81,7 @@ __args() {
 __cmds() {
 	# Process commands
 	[[ -z "$1" ]] && cat "$prgroot"/help | head -1 && exit
-	1="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+	1="$(echo "$1" | tr '[:upper:]' '[:lower:]')" 2>/dev/null
 	while [[ -n "$1" ]]; do
 		case "${1}" in
 			format )
